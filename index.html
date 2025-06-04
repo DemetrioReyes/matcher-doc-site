@@ -1,115 +1,212 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Matcher Doc</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    body {
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
       font-family: 'Inter', sans-serif;
-      background-color: #f5f7fa;
+      background-color: #f4f6f9;
       color: #1f2937;
+      line-height: 1.6;
     }
     header {
-      background-color: #111827;
-      color: white;
-      padding: 2rem;
+      background-color: #0f172a;
+      padding: 40px 20px;
       text-align: center;
+      color: #ffffff;
+    }
+    header img {
+      max-width: 180px;
+      margin-bottom: 20px;
     }
     header h1 {
       font-size: 2.5rem;
-      margin: 0;
+      margin-bottom: 10px;
     }
     header p {
-      font-size: 1.25rem;
-      margin-top: 0.5rem;
+      font-size: 1.2rem;
+      color: #cbd5e1;
     }
     main {
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 0 1rem;
+      max-width: 960px;
+      margin: 40px auto;
+      padding: 0 20px;
     }
     section {
-      margin-bottom: 3rem;
+      margin-bottom: 60px;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
     h2 {
       font-size: 1.75rem;
-      margin-bottom: 1rem;
-      color: #111827;
+      margin-bottom: 20px;
+      color: #0f172a;
+    }
+    p, li {
+      font-size: 1rem;
+      color: #374151;
     }
     ul {
-      padding-left: 1.2rem;
+      list-style: none;
+      padding-left: 0;
     }
-    li {
-      margin-bottom: 0.5rem;
-    }
-    footer {
-      background-color: #111827;
-      color: white;
-      text-align: center;
-      padding: 1.5rem;
-      font-size: 0.875rem;
+    li::before {
+      content: "✔";
+      color: #10b981;
+      margin-right: 10px;
     }
     .btn-contact {
       display: inline-block;
-      margin-top: 1rem;
-      padding: 0.75rem 1.5rem;
+      margin-top: 20px;
+      padding: 12px 24px;
       background-color: #3b82f6;
-      color: white;
-      border-radius: 0.5rem;
+      color: #ffffff;
       text-decoration: none;
+      border-radius: 8px;
       font-weight: 600;
+      transition: background 0.3s;
     }
     .btn-contact:hover {
       background-color: #2563eb;
+    }
+    footer {
+      background-color: #0f172a;
+      color: #94a3b8;
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9rem;
+    }
+    .camera-box {
+      margin-top: 20px;
+      text-align: center;
+    }
+    video, canvas {
+      width: 100%;
+      max-width: 400px;
+      margin: 10px auto;
+      display: block;
+      border-radius: 8px;
+    }
+    button.capture {
+      margin-top: 10px;
+      padding: 10px 16px;
+      background-color: #0f172a;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button.capture:hover {
+      background-color: #1e293b;
     }
   </style>
 </head>
 <body>
   <header>
+    <img src="matcherDoc3.jpg" alt="Matcher Doc Logo">
     <h1>Matcher Doc</h1>
-    <p>Tu solución inteligente para gestión documental</p>
+    <p>Smart Identity & Document Verification</p>
   </header>
-
   <main>
     <section>
-      <h2>¿Qué es Matcher Doc?</h2>
-      <p>Es una plataforma pensada para empresas que necesitan organizar, buscar, validar y consolidar documentos de forma eficiente y segura.</p>
+      <h2>What is Matcher Doc?</h2>
+      <p>Matcher Doc is a digital identity verification platform that helps you validate customer identity and documents with facial recognition and smart workflows.</p>
     </section>
-
     <section>
-      <h2>Características principales</h2>
+      <h2>Facial Recognition Demo</h2>
+      <p>This demo allows you to capture a selfie and a photo of your ID for facial comparison.</p>
+      <div class="camera-box">
+        <h3>Step 1: Capture Selfie</h3>
+        <video id="videoSelfie" autoplay playsinline></video>
+        <button class="capture" onclick="captureSelfie()">Capture Selfie</button>
+        <canvas id="canvasSelfie" width="320" height="240" style="display:none;"></canvas>
+      </div>
+      <div class="camera-box">
+        <h3>Step 2: Capture ID</h3>
+        <video id="videoID" autoplay playsinline></video>
+        <button class="capture" onclick="captureID()">Capture ID</button>
+        <canvas id="canvasID" width="320" height="240" style="display:none;"></canvas>
+      </div>
+      <div style="text-align:center; margin-top:20px;">
+        <button class="btn-contact" onclick="sendToServer()">Verify Identity</button>
+      </div>
+    </section>
+    <section>
+      <h2>Key Features</h2>
       <ul>
-        <li>📁 Estructura documental flexible por tipo de cliente, producto o proceso</li>
-        <li>🔍 Búsqueda rápida por referencia, nombre o metadatos</li>
-        <li>📊 Visualización de expedientes completos</li>
-        <li>✅ Validación de integridad de documentos</li>
-        <li>🧠 Motor de reglas para documentos requeridos</li>
-        <li>📝 Carga masiva vía Excel o API</li>
+        <li>Guided selfie capture with liveness detection</li>
+        <li>Smart document organization by client or product</li>
+        <li>Instant document search and filtering</li>
+        <li>Visual document validation and completeness scoring</li>
+        <li>Bulk uploads via Excel or API</li>
       </ul>
     </section>
-
     <section>
-      <h2>Beneficios</h2>
+      <h2>Benefits</h2>
       <ul>
-        <li>🔒 Seguridad documental con control de accesos</li>
-        <li>📤 Reducción de tiempo en auditorías internas y externas</li>
-        <li>🕒 Menor tiempo de respuesta para clientes y reguladores</li>
-        <li>📚 Expedientes únicos bien organizados y completos</li>
+        <li>Faster KYC and onboarding processes</li>
+        <li>Secure document control and compliance</li>
+        <li>Centralized, complete digital dossiers</li>
+        <li>Better audit readiness and customer trust</li>
       </ul>
     </section>
-
     <section>
-      <h2>Contacto</h2>
-      <p>¿Quieres ver una demo o conocer más?</p>
-      <a class="btn-contact" href="mailto:eliseo.reyes.dev@gmail.com">Contáctanos</a>
+      <h2>Contact Us</h2>
+      <p>Would you like a demo or have questions about Matcher Doc?</p>
+      <a class="btn-contact" href="mailto:eliseo.reyes.dev@gmail.com">Request a Demo</a>
     </section>
   </main>
-
   <footer>
-    &copy; 2025 Matcher Doc. Desarrollado por Eliseo Reyes.
+    &copy; 2025 Matcher Doc. Built by Eliseo Reyes.
   </footer>
+  <script>
+    const videoSelfie = document.getElementById("videoSelfie");
+    const videoID = document.getElementById("videoID");
+    async function startCamera(videoElement, facing = "user") {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false });
+      videoElement.srcObject = stream;
+    }
+    startCamera(videoSelfie, "user");
+    startCamera(videoID, "environment");
+    function captureSelfie() {
+      const canvas = document.getElementById("canvasSelfie");
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(videoSelfie, 0, 0, canvas.width, canvas.height);
+      canvas.style.display = "block";
+    }
+    function captureID() {
+      const canvas = document.getElementById("canvasID");
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(videoID, 0, 0, canvas.width, canvas.height);
+      canvas.style.display = "block";
+    }
+    function sendToServer() {
+      const selfieData = document.getElementById("canvasSelfie").toDataURL("image/jpeg", 0.9).split(",")[1];
+      const idData = document.getElementById("canvasID").toDataURL("image/jpeg", 0.9).split(",")[1];
+      const payload = {
+        selfie: selfieData,
+        id_document: idData,
+        userId: "demo-user"
+      };
+      fetch("/api/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => alert("Result: " + JSON.stringify(data)))
+      .catch(err => alert("Error: " + err.message));
+    }
+  </script>
 </body>
 </html>
