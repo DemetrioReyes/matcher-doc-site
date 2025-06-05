@@ -1,12 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, ArrowRight } from 'lucide-react';
+import * as faceapi from 'face-api.js';
 
 interface FaceLivenessDetectorProps {
   onSuccess: (result: { livenessImage: ArrayBuffer }) => void;
 }
 
-// In a real implementation, this would use the AWS Amplify Face Liveness component
-// For this POC, we're simulating the liveness detection
 const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -15,37 +14,126 @@ const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }
   const [faceCentered, setFaceCentered] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [instructions, setInstructions] = useState('Click "Start" to begin face verification');
+  const [modelsLoaded, setModelsLoaded] = useState(false);
 
-  // Initialize camera
+  // Cargar modelos de face-api.js
+  useEffect(() => {
+    const loadModels = async () => {
+      try {
+        const MODEL_URL = '/models';
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+        setModelsLoaded(true);
+      } catch (error) {
+        console.error('Error al cargar modelos:', error);
+      }
+    };
+    loadModels();
+
+    return () => {
+      // Limpiar modelos al desmontar
+      if (modelsLoaded) {
+        console.log('Disponiendo modelos de face-api.js...');
+        faceapi.nets.tinyFaceDetector.dispose();
+        console.log('Modelos de face-api.js dispuestos.');
+      }
+    };
+  }, []);
+
+  // Inicializar cámara
   const startCamera = async () => {
     try {
       setIsCapturing(true);
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } 
+        video: { 
+          facingMode: 'user',
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        } 
       });
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        setCameraActive(true);
+        videoRef.current.style.transform = 'none';
         
-        // Simulate face detection process
-        setTimeout(() => {
-          setInstructions('Position your face within the oval');
-          setTimeout(() => {
-            setFaceCentered(true);
-            setInstructions('Face detected! Hold still...');
-            startCountdown();
-          }, 2000);
-        }, 1500);
+        // Esperar a que el video esté listo
+        await new Promise((resolve) => {
+          if (videoRef.current) {
+            videoRef.current.onloadedmetadata = () => {
+              resolve(true);
+            };
+          }
+        });
+
+        setCameraActive(true);
+        setInstructions('Position your face in front of the camera');
       }
     } catch (err) {
-      console.error('Error accessing camera:', err);
+      console.error('Error al acceder a la cámara:', err);
       setInstructions('Camera access denied. Please allow camera access and try again.');
       setIsCapturing(false);
     }
   };
 
-  // Simulate countdown for capture
+  // Detectar rostro y verificar posición
+  const detectFace = async () => {
+    if (!videoRef.current || !canvasRef.current || !modelsLoaded) {
+      return;
+    }
+
+    const video = videoRef.current;
+    
+    // Verificar si el video está listo
+    if (video.readyState !== 4) {
+      requestAnimationFrame(detectFace);
+      return;
+    }
+
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    
+    if (!context) {
+      return;
+    }
+
+    try {
+      // Configurar canvas
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      // Detectar rostro
+      const detections = await faceapi.detectAllFaces(
+        video,
+        new faceapi.TinyFaceDetectorOptions({
+          inputSize: 224,
+          scoreThreshold: 0.01
+        })
+      );
+
+      if (detections.length > 0) {
+        const face = detections[0];
+        
+        if (!faceCentered) {
+          setFaceCentered(true);
+          setInstructions('Face detected! Hold still...');
+          startCountdown();
+        }
+      } else {
+        if (faceCentered) {
+          setFaceCentered(false);
+          setInstructions('Position your face in front of the camera');
+        }
+      }
+
+      // Continuar detección
+      requestAnimationFrame(detectFace);
+    } catch (error) {
+      console.error('Error en la detección facial:', error);
+      // Continuar detección incluso si hay error
+      requestAnimationFrame(detectFace);
+    }
+  };
+
+  // Iniciar conteo regresivo
   const startCountdown = () => {
     let count = 3;
     setCountdown(count);
@@ -61,32 +149,23 @@ const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }
     }, 1000);
   };
 
-  // Capture video frame
-  const captureFrame = () => {
+  // Capturar frame
+  const captureFrame = async () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
       
       if (context) {
-        // Set canvas dimensions to match video
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        
-        // Draw video frame to canvas
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         
-        // Convert canvas to blob
         canvas.toBlob((blob) => {
           if (blob) {
-            // Convert blob to ArrayBuffer
             const reader = new FileReader();
-            reader.onloadend = () => {
+            reader.onloadend = async () => {
               if (reader.result instanceof ArrayBuffer) {
-                // Stop camera
-                stopCamera();
-                
-                // Pass the captured frame to parent component
                 onSuccess({ livenessImage: reader.result });
               }
             };
@@ -97,8 +176,8 @@ const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }
     }
   };
 
-  // Stop camera stream
-  const stopCamera = () => {
+  // Detener cámara
+  const stopCamera = async () => {
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       const tracks = stream.getTracks();
@@ -107,10 +186,25 @@ const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }
       videoRef.current.srcObject = null;
       setCameraActive(false);
       setIsCapturing(false);
+      // Disponer modelos después de detener la cámara si ya no se van a usar
+      if (modelsLoaded) {
+         console.log('Disponiendo modelos de face-api.js después de stopCamera...');
+         faceapi.nets.tinyFaceDetector.dispose();
+         console.log('Modelos de face-api.js dispuestos después de stopCamera.');
+         // Añadir un pequeño retraso para asegurar la limpieza antes de cambiar de componente
+         await new Promise(resolve => setTimeout(resolve, 500)); // Espera 500ms
+      }
     }
   };
 
-  // Clean up on unmount
+  // Iniciar detección facial cuando la cámara esté activa
+  useEffect(() => {
+    if (cameraActive && modelsLoaded) {
+      detectFace();
+    }
+  }, [cameraActive, modelsLoaded]);
+
+  // Limpiar al desmontar
   useEffect(() => {
     return () => {
       stopCamera();

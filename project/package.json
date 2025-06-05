@@ -11,16 +11,20 @@
     "start": "node server/index.js"
   },
   "dependencies": {
-    "aws-amplify": "^6.0.17",
     "@aws-amplify/ui-react": "^6.1.6",
+    "@tensorflow-models/coco-ssd": "^2.2.3",
+    "@tensorflow/tfjs": "^4.22.0",
+    "aws-amplify": "^6.0.17",
     "aws-sdk": "^2.1569.0",
+    "body-parser": "^1.20.2",
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
-    "body-parser": "^1.20.2",
+    "face-api.js": "^0.22.2",
     "jimp": "^0.22.10",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tesseract.js": "^6.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
