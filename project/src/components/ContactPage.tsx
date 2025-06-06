@@ -52,7 +52,7 @@ const ContactPage = () => {
                   <Phone className="w-6 h-6 text-blue-400 mt-1" />
                   <div className="ml-4">
                     <h3 className="font-semibold">Phone</h3>
-                    <p className="text-slate-300">+1 (809) 555-0123</p>
+                    <p className="text-slate-300">+1 (612) 555-0123</p>
                   </div>
                 </div>
                 <div className="flex items-start">
@@ -60,9 +60,9 @@ const ContactPage = () => {
                   <div className="ml-4">
                     <h3 className="font-semibold">Address</h3>
                     <p className="text-slate-300">
-                      123 Business Street<br />
-                      Suite 100<br />
-                      Santo Domingo, Dominican Republic
+                     445 Minnesota St<br />
+                     Suite #1500<br />
+                      St. Paul, MN 55101 
                     </p>
                   </div>
                 </div>
