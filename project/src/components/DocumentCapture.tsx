@@ -22,10 +22,10 @@ const DocumentCapture: React.FC<DocumentCaptureProps> = ({ onCapture }) => {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         setCameraActive(true);
-        console.log('Cámara iniciada en DocumentCapture.');
+        console.log('Camera started in DocumentCapture.');
       }
     } catch (err) {
-      console.error('Error al acceder a la cámara en DocumentCapture:', err);
+      console.error('Error accessing camera in DocumentCapture:', err);
       setCameraActive(false);
     }
   };
@@ -34,7 +34,7 @@ const DocumentCapture: React.FC<DocumentCaptureProps> = ({ onCapture }) => {
     const stream = videoRef.current?.srcObject as MediaStream;
     stream?.getTracks().forEach((track) => track.stop());
     setCameraActive(false);
-    console.log('Cámara detenida en DocumentCapture.');
+    console.log('Camera stopped in DocumentCapture.');
   };
 
   const analyzeFrame = async () => {
@@ -44,12 +44,12 @@ const DocumentCapture: React.FC<DocumentCaptureProps> = ({ onCapture }) => {
       console.log(`analyzeFrame - Condition failed/Video not ready. Video ReadyState: ${videoRef.current?.readyState}, Camera State: ${cameraActive}, Captured: ${!!capturedImage}, Processing: ${processing}`);
 
       if (videoRef.current && canvasRef.current && !capturedImage && !processing && (videoRef.current.readyState < 4 || !cameraActive)) {
-         console.log('Video no listo o cámara no activa, intentando iniciar/verificar...');
+         console.log('Video not ready or camera not active, attempting to start/verify...');
       }
       return;
     }
 
-    console.log('Video listo, analizando frame para OCR...');
+    console.log('Video ready, analyzing frame for OCR...');
 
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d', { willReadFrequently: true });
@@ -73,12 +73,12 @@ const DocumentCapture: React.FC<DocumentCaptureProps> = ({ onCapture }) => {
       console.log('OCR Text:', text);
 
       if (
-        text.includes('REPÚBLICA') ||
+        text.includes('REPUBLICA') ||
         text.includes('DOMINICANA') ||
-        text.includes('CÉDULA') ||
+        text.includes('CEDULA') ||
         text.includes('IDENTIDAD')
       ) {
-        console.log('Palabra clave detectada. Capturando...');
+        console.log('Keyword detected. Capturing...');
         setCapturedImage(imageDataUrl);
         stopCamera();
       }
@@ -114,7 +114,7 @@ const DocumentCapture: React.FC<DocumentCaptureProps> = ({ onCapture }) => {
 
   return (
     <div className="p-4">
-      <h2 className="text-lg font-bold text-gray-700 mb-2">Escanea tu cédula</h2>
+      <h2 className="text-lg font-bold text-gray-700 mb-2">Scan your ID</h2>
 
       <div className="relative w-full max-w-sm mx-auto aspect-[3/4] bg-gray-200 rounded-lg overflow-hidden">
         <video
@@ -125,15 +125,15 @@ const DocumentCapture: React.FC<DocumentCaptureProps> = ({ onCapture }) => {
           className={`w-full h-full object-cover ${capturedImage ? 'hidden' : ''}`}
         />
         {capturedImage && (
-          <img src={capturedImage} alt="ID Capturada" className="w-full h-full object-contain" />
+          <img src={capturedImage} alt="Captured ID" className="w-full h-full object-contain" />
         )}
         <canvas ref={canvasRef} className="hidden" />
       </div>
 
       <p className="text-center text-sm mt-3 text-gray-600">
         {capturedImage
-          ? 'Documento capturado automáticamente.'
-          : 'Mantén tu cédula visible. Se tomará una foto automáticamente.'}
+          ? 'Document automatically captured.'
+          : 'Keep your ID visible. A photo will be taken automatically.'}
       </p>
 
       {capturedImage && (
