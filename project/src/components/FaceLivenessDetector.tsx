@@ -16,7 +16,7 @@ const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }
   const [instructions, setInstructions] = useState('Click "Start" to begin face verification');
   const [modelsLoaded, setModelsLoaded] = useState(false);
 
-  // Cargar modelos de face-api.js
+  // Load face-api.js models
   useEffect(() => {
     const loadModels = async () => {
       try {
@@ -24,22 +24,22 @@ const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
         setModelsLoaded(true);
       } catch (error) {
-        console.error('Error al cargar modelos:', error);
+        console.error('Error loading models:', error);
       }
     };
     loadModels();
 
     return () => {
-      // Limpiar modelos al desmontar
+      // Clean up models on unmount
       if (modelsLoaded) {
-        console.log('Disponiendo modelos de face-api.js...');
+        console.log('Disposing face-api.js models...');
         faceapi.nets.tinyFaceDetector.dispose();
-        console.log('Modelos de face-api.js dispuestos.');
+        console.log('face-api.js models disposed.');
       }
     };
   }, []);
 
-  // Inicializar cámara
+  // Initialize camera
   const startCamera = async () => {
     try {
       setIsCapturing(true);
@@ -55,7 +55,7 @@ const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }
         videoRef.current.srcObject = stream;
         videoRef.current.style.transform = 'none';
         
-        // Esperar a que el video esté listo
+        // Wait for video to be ready
         await new Promise((resolve) => {
           if (videoRef.current) {
             videoRef.current.onloadedmetadata = () => {
@@ -68,13 +68,13 @@ const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }
         setInstructions('Position your face in front of the camera');
       }
     } catch (err) {
-      console.error('Error al acceder a la cámara:', err);
+      console.error('Error accessing camera:', err);
       setInstructions('Camera access denied. Please allow camera access and try again.');
       setIsCapturing(false);
     }
   };
 
-  // Detectar rostro y verificar posición
+  // Detect face and verify position
   const detectFace = async () => {
     if (!videoRef.current || !canvasRef.current || !modelsLoaded) {
       return;
@@ -82,7 +82,7 @@ const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }
 
     const video = videoRef.current;
     
-    // Verificar si el video está listo
+    // Check if video is ready
     if (video.readyState !== 4) {
       requestAnimationFrame(detectFace);
       return;
@@ -96,11 +96,11 @@ const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }
     }
 
     try {
-      // Configurar canvas
+      // Configure canvas
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      // Detectar rostro
+      // Detect face
       const detections = await faceapi.detectAllFaces(
         video,
         new faceapi.TinyFaceDetectorOptions({
@@ -124,16 +124,16 @@ const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }
         }
       }
 
-      // Continuar detección
+      // Continue detection
       requestAnimationFrame(detectFace);
     } catch (error) {
-      console.error('Error en la detección facial:', error);
-      // Continuar detección incluso si hay error
+      console.error('Error in face detection:', error);
+      // Continue detection even if there's an error
       requestAnimationFrame(detectFace);
     }
   };
 
-  // Iniciar conteo regresivo
+  // Start countdown
   const startCountdown = () => {
     let count = 3;
     setCountdown(count);
@@ -149,7 +149,7 @@ const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }
     }, 1000);
   };
 
-  // Capturar frame
+  // Capture frame
   const captureFrame = async () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
@@ -176,7 +176,7 @@ const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }
     }
   };
 
-  // Detener cámara
+  // Stop camera
   const stopCamera = async () => {
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
@@ -186,25 +186,25 @@ const FaceLivenessDetector: React.FC<FaceLivenessDetectorProps> = ({ onSuccess }
       videoRef.current.srcObject = null;
       setCameraActive(false);
       setIsCapturing(false);
-      // Disponer modelos después de detener la cámara si ya no se van a usar
+      // Dispose models after stopping camera if they won't be used anymore
       if (modelsLoaded) {
-         console.log('Disponiendo modelos de face-api.js después de stopCamera...');
+         console.log('Disposing face-api.js models after stopCamera...');
          faceapi.nets.tinyFaceDetector.dispose();
-         console.log('Modelos de face-api.js dispuestos después de stopCamera.');
-         // Añadir un pequeño retraso para asegurar la limpieza antes de cambiar de componente
-         await new Promise(resolve => setTimeout(resolve, 500)); // Espera 500ms
+         console.log('face-api.js models disposed after stopCamera.');
+         // Add a small delay to ensure cleanup before component change
+         await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
       }
     }
   };
 
-  // Iniciar detección facial cuando la cámara esté activa
+  // Start face detection when camera is active
   useEffect(() => {
     if (cameraActive && modelsLoaded) {
       detectFace();
     }
   }, [cameraActive, modelsLoaded]);
 
-  // Limpiar al desmontar
+  // Clean up on unmount
   useEffect(() => {
     return () => {
       stopCamera();
